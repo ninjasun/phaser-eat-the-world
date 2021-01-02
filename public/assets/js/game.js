@@ -1,89 +1,91 @@
 class BootScene extends Phaser.Scene {
   constructor() {
     super({
-      key: 'BootScene',
-      active: true
+      key: "BootScene",
+      active: true,
     });
   }
 
   preload() {
     // map tiles
-    this.load.image('tiles', 'assets/map/spritesheet-extruded.png');
+    this.load.image("tiles", "assets/map/spritesheet-extruded.png");
     // map in json format
-    this.load.tilemapTiledJSON('map', 'assets/map/map.json');
+    this.load.tilemapTiledJSON("map", "assets/map/map.json");
     // our two characters
-    this.load.spritesheet('player', 'assets/RPG_assets.png', {
+    this.load.spritesheet("player", "assets/RPG_assets.png", {
       frameWidth: 16,
-      frameHeight: 16
+      frameHeight: 16,
     });
   }
 
   create() {
-    this.scene.start('WorldScene');
+    this.socket = io();
+    this.scene.start("WorldScene");
   }
 }
 
 class WorldScene extends Phaser.Scene {
   constructor() {
     super({
-      key: 'WorldScene'
+      key: "WorldScene",
     });
   }
 
   create() {
+    this.socket = io();
     // create the map
     var map = this.make.tilemap({
-      key: 'map'
+      key: "map",
     });
 
     // first parameter is the name of the tilemap in tiled
-    var tiles = map.addTilesetImage('spritesheet', 'tiles', 16, 16, 1, 2);
+    var tiles = map.addTilesetImage("spritesheet", "tiles", 16, 16, 1, 2);
 
     // creating the layers
-    var grass = map.createStaticLayer('Grass', tiles, 0, 0);
-    var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
+    var grass = map.createStaticLayer("Grass", tiles, 0, 0);
+    var obstacles = map.createStaticLayer("Obstacles", tiles, 0, 0);
 
     // make all tiles in obstacles collidable
     obstacles.setCollisionByExclusion([-1]);
 
     //  animation with key 'left', we don't need left and right as we will use one and flip the sprite
     this.anims.create({
-      key: 'left',
-      frames: this.anims.generateFrameNumbers('player', {
-        frames: [1, 7, 1, 13]
+      key: "left",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: [1, 7, 1, 13],
       }),
       frameRate: 10,
-      repeat: -1
+      repeat: -1,
     });
 
     // animation with key 'right'
     this.anims.create({
-      key: 'right',
-      frames: this.anims.generateFrameNumbers('player', {
-        frames: [1, 7, 1, 13]
+      key: "right",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: [1, 7, 1, 13],
       }),
       frameRate: 10,
-      repeat: -1
+      repeat: -1,
     });
     this.anims.create({
-      key: 'up',
-      frames: this.anims.generateFrameNumbers('player', {
-        frames: [2, 8, 2, 14]
+      key: "up",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: [2, 8, 2, 14],
       }),
       frameRate: 10,
-      repeat: -1
+      repeat: -1,
     });
     this.anims.create({
-      key: 'down',
-      frames: this.anims.generateFrameNumbers('player', {
-        frames: [0, 6, 0, 12]
+      key: "down",
+      frames: this.anims.generateFrameNumbers("player", {
+        frames: [0, 6, 0, 12],
       }),
       frameRate: 10,
-      repeat: -1
+      repeat: -1,
     });
 
     // our player sprite created through the phycis system
-    this.player = this.physics.add.sprite(50, 100, 'player', 6);
+    this.player = this.physics.add.sprite(50, 100, "player", 6);
 
     // don't go out of the map
     this.physics.world.bounds.width = map.widthInPixels;
@@ -103,7 +105,7 @@ class WorldScene extends Phaser.Scene {
 
     // where the enemies will be
     this.spawns = this.physics.add.group({
-      classType: Phaser.GameObjects.Zone
+      classType: Phaser.GameObjects.Zone,
     });
     for (var i = 0; i < 30; i++) {
       var x = Phaser.Math.RND.between(0, this.physics.world.bounds.width);
@@ -112,7 +114,13 @@ class WorldScene extends Phaser.Scene {
       this.spawns.create(x, y, 20, 20);
     }
     // add collider
-    this.physics.add.overlap(this.player, this.spawns, this.onMeetEnemy, false, this);
+    this.physics.add.overlap(
+      this.player,
+      this.spawns,
+      this.onMeetEnemy,
+      false,
+      this
+    );
   }
 
   onMeetEnemy(player, zone) {
@@ -142,15 +150,15 @@ class WorldScene extends Phaser.Scene {
 
     // Update the animation last and give left/right animations precedence over up/down animations
     if (this.cursors.left.isDown) {
-      this.player.anims.play('left', true);
+      this.player.anims.play("left", true);
       this.player.flipX = true;
     } else if (this.cursors.right.isDown) {
-      this.player.anims.play('right', true);
+      this.player.anims.play("right", true);
       this.player.flipX = false;
     } else if (this.cursors.up.isDown) {
-      this.player.anims.play('up', true);
+      this.player.anims.play("up", true);
     } else if (this.cursors.down.isDown) {
-      this.player.anims.play('down', true);
+      this.player.anims.play("down", true);
     } else {
       this.player.anims.stop();
     }
@@ -159,23 +167,20 @@ class WorldScene extends Phaser.Scene {
 
 var config = {
   type: Phaser.AUTO,
-  parent: 'content',
+  parent: "content",
   width: 320,
   height: 240,
   zoom: 3,
   pixelArt: true,
   physics: {
-    default: 'arcade',
+    default: "arcade",
     arcade: {
       gravity: {
-        y: 0
+        y: 0,
       },
-      debug: true // set to true to view zones
-    }
+      debug: true, // set to true to view zones
+    },
   },
-  scene: [
-    BootScene,
-    WorldScene
-  ]
+  scene: [BootScene, WorldScene],
 };
 var game = new Phaser.Game(config);
